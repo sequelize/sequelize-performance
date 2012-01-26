@@ -2,6 +2,10 @@
 
 mumble mumble
 
+## Setup database first
+
+The tests are using the database `performance_analysis_sequelize` with the user `root` without a password!
+
 ## How is it working?
 
     npm install
