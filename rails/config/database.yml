@@ -4,6 +4,7 @@ development:
   adapter: mysql2
   database: performance_analysis_sequelize
   user: root
+  pool: 20
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
