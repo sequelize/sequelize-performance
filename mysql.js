@@ -80,9 +80,9 @@ var testUpdates = function(async, testUpdatesCallback) {
 
   if(async) {
     for(var i = 0; i < LIMIT; i++)
-      updateEntry(done, updateEntryCallback)
+      updateEntry(i, updateEntryCallback)
   } else {
-    updateEntry(done, updateEntryCallback)
+    updateEntry(0, updateEntryCallback)
   }
 }
 
