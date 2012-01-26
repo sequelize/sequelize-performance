@@ -1,0 +1,8 @@
+source :rubygems
+gem 'rake', '0.8.7' # passenger dependency we must match
+gem 'builder', '3.0.0' # gets loaded before config/setup_load_paths.rb is loaded
+
+gem 'rails', '2.3.14', :require => false
+gem 'rack', '1.1.0' # not fixed, but should not change all the time
+gem "mysql2", "~>0.2.7", :require => false
+gem "parallel"
