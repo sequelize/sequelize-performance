@@ -11,7 +11,8 @@ var testInserts = function(async, testInsertsCallback, disableLogging) {
   var queryChainer = new Sequelize.Utils.QueryChainer()
 
   Entry.sync({ force: true }).success(function() {
-    var start = +new Date
+    var start    = +new Date
+      , duration = null
 
     for(var i = 0; i < LIMIT; i++) {
       var params = { number: Math.floor(Math.random() * 99999), string: 'asdasdad' }
@@ -24,16 +25,18 @@ var testInserts = function(async, testInsertsCallback, disableLogging) {
     }
 
     queryChainer[async ? 'run' : 'runSerially']().success(function() {
+      duration = (+new Date) - start
+
       var logTemplate = 'Adding {{limit}} database entries {{executionType}} took {{duration}}ms.'
       var logMessage  = logTemplate
         .replace('{{limit}}', LIMIT)
         .replace('{{executionType}}', async ? 'async' : 'serially')
-        .replace('{{duration}}', (+new Date) - start)
+        .replace('{{duration}}', duration)
 
       if(!disableLogging)
         console.log(logMessage)
 
-      testInsertsCallback && testInsertsCallback()
+      testInsertsCallback && testInsertsCallback(duration)
     })
   })
 }
@@ -42,6 +45,7 @@ var testUpdates = function(async, testUpdatesCallback) {
   Entry.all().success(function(entries) {
     var queryChainer = new Sequelize.Utils.QueryChainer()
       , start        = +new Date
+      , duration     = null
 
     entries.forEach(function(entry) {
       if(async)
@@ -51,8 +55,9 @@ var testUpdates = function(async, testUpdatesCallback) {
     })
 
     queryChainer[async ? 'run' : 'runSerially']().success(function() {
-      console.log('Updating ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + ((+new Date) - start) + 'ms')
-      testUpdatesCallback && testUpdatesCallback()
+      duration = ((+new Date) - start)
+      console.log('Updating ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+      testUpdatesCallback && testUpdatesCallback(duration)
     }).error(function(errors) {
       console.log(errors)
     })
@@ -61,11 +66,13 @@ var testUpdates = function(async, testUpdatesCallback) {
 
 var testRead = function(testReadCallback) {
   Entry.sync().success(function() {
-    var start = +new Date
+    var start    = +new Date
+      , duration = null
 
     Entry.all().success(function(entries) {
-      console.log('Reading ' + entries.length + ' database entries took ' + ((+new Date) - start) + 'ms')
-      testReadCallback && testReadCallback()
+      duration = ((+new Date) - start)
+      console.log('Reading ' + entries.length + ' database entries took ' + duration + 'ms')
+      testReadCallback && testReadCallback(duration)
     })
   })
 }
@@ -75,6 +82,7 @@ var testDelete = function(async, testDeleteCallback) {
     Entry.all().success(function(entries) {
       var queryChainer = new Sequelize.Utils.QueryChainer()
         , start        = +new Date
+        , duration     = null
 
       entries.forEach(function(entry) {
         if(async) {
@@ -85,31 +93,67 @@ var testDelete = function(async, testDeleteCallback) {
       })
 
       queryChainer[async ? 'run' : 'runSerially']().success(function() {
+        duration = ((+new Date) - start)
         var logTemplate = 'Deleting {{limit}} database entries {{executionType}} took {{duration}}ms.'
         var logMessage  = logTemplate
           .replace('{{limit}}', LIMIT)
           .replace('{{executionType}}', async ? 'async' : 'serially')
-          .replace('{{duration}}', (+new Date) - start)
+          .replace('{{duration}}', duration)
 
         console.log(logMessage)
-        testDeleteCallback && testDeleteCallback()
+        testDeleteCallback && testDeleteCallback(duration)
       })
     })
   }, true)
 }
 
-testInserts(false, function() {
-  testInserts(true, function() {
-    testUpdates(false, function() {
-      testUpdates(true, function() {
-        testRead(function() {
-          testDelete(false, function() {
-            testDelete(true, function() {
-              console.log('Performance tests for Sequelize done.')
+module.exports = function(times, runCallback) {
+  var durations = []
+    , done      = 0
+
+  var runTestsOnce = function(callback) {
+    console.log('\nRunning sequelize tests #' + (done + 1))
+
+    var results = {}
+
+    testInserts(false, function(duration) {
+      results.insertSerially = duration
+
+      testInserts(true, function(duration) {
+        results.insertAsync = duration
+
+        testUpdates(false, function(duration) {
+          results.updateSerially = duration
+
+          testUpdates(true, function(duration) {
+            results.updateAsync = duration
+
+            testRead(function(duration) {
+              results.read = duration
+
+              testDelete(false, function(duration) {
+                results.deleteSerially = duration
+
+                testDelete(true, function(duration) {
+                  results.deleteAsync = duration
+
+                  durations.push(results)
+                  callback && callback()
+                })
+              })
             })
           })
         })
       })
     })
-  })
-})
+  }
+
+  var runTestsOnceCallback = function() {
+    if(++done == times)
+      runCallback && runCallback(durations)
+    else
+      runTestsOnce(runTestsOnceCallback)
+  }
+
+  runTestsOnce(runTestsOnceCallback)
+}

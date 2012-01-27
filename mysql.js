@@ -16,8 +16,9 @@ var createTable = function(callback) {
 
 var testInserts = function(async, testInsertsCallback, disableLogging) {
   createTable(function() {
-    var done  = 0
-      , start = +new Date()
+    var done     = 0
+      , start    = +new Date()
+      , duration = null
 
     var createEntry = function(callback) {
       var sql = "INSERT INTO `Entries` (`number`,`string`,`id`,`createdAt`,`updatedAt`) VALUES (" + Math.floor(Math.random() * 99999) + ",'asdasdad',NULL,'2012-01-24 16:57:51','2012-01-24 16:57:51');"
@@ -29,16 +30,18 @@ var testInserts = function(async, testInsertsCallback, disableLogging) {
     }
 
     var createEntryCallback = function() {
-      if((++done == LIMIT) && !disableLogging)
-        console.log('Adding ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + ((+new Date) - start) + 'ms')
+      if((++done == LIMIT) && !disableLogging) {
+        duration = (+new Date) - start
+        console.log('Adding ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+      }
 
       if(async) {
-        (done == LIMIT) && testInsertsCallback && testInsertsCallback()
+        (done == LIMIT) && testInsertsCallback && testInsertsCallback(duration)
       } else {
         if(done < LIMIT)
           createEntry(createEntryCallback)
         else
-          testInsertsCallback && testInsertsCallback()
+          testInsertsCallback && testInsertsCallback(duration)
       }
     }
 
@@ -52,8 +55,9 @@ var testInserts = function(async, testInsertsCallback, disableLogging) {
 }
 
 var testUpdates = function(async, testUpdatesCallback) {
-  var done  = 0
-    , start = +new Date()
+  var done     = 0
+    , start    = +new Date()
+    , duration = null
 
   var updateEntry = function(id, callback) {
     var value = Math.floor(Math.random() * 9999999)
@@ -65,16 +69,18 @@ var testUpdates = function(async, testUpdatesCallback) {
   }
 
   var updateEntryCallback = function() {
-    if(++done == LIMIT)
-      console.log('Updating ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + ((+new Date) - start) + 'ms')
+    if(++done == LIMIT) {
+      duration = (+new Date) - start
+      console.log('Updating ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+    }
 
     if(async) {
-      (done == LIMIT) && testUpdatesCallback && testUpdatesCallback()
+      (done == LIMIT) && testUpdatesCallback && testUpdatesCallback(duration)
     } else {
       if(done < LIMIT)
         updateEntry(done, updateEntryCallback)
       else
-        testUpdatesCallback && testUpdatesCallback()
+        testUpdatesCallback && testUpdatesCallback(duration)
     }
   }
 
@@ -87,9 +93,10 @@ var testUpdates = function(async, testUpdatesCallback) {
 }
 
 var testRead = function(testReadCallback) {
-  var done  = 0
-    , start = +new Date
-    , sql   = 'SELECT * FROM Entries'
+  var done     = 0
+    , start    = +new Date
+    , sql      = 'SELECT * FROM Entries'
+    , duration = null
 
   client = MySQL.createClient({
     user: 'root',
@@ -99,14 +106,16 @@ var testRead = function(testReadCallback) {
   client.query(sql, function(err, results, fields) {
     if(err) throw new Error(err)
 
-    console.log('Reading ' + results.length + ' database entries took ' + ((+new Date) - start) + 'ms')
-    testReadCallback && testReadCallback()
+    duration = (+new Date) - start
+    console.log('Reading ' + results.length + ' database entries took ' + duration + 'ms')
+    testReadCallback && testReadCallback(duration)
   })
 }
 
 var testDelete = function(async, testDeleteCallback) {
-  var done  = 0
-    , start = +new Date
+  var done     = 0
+    , start    = +new Date()
+    , duration = null
 
   var deleteEntry = function(id, callback) {
     var sql = 'DELETE FROM `Entries` WHERE id=' + id + ' LIMIT 1;'
@@ -118,18 +127,19 @@ var testDelete = function(async, testDeleteCallback) {
   }
 
   var deleteEntryCallback = function() {
-    if(++done == LIMIT)
-      console.log('Deleting ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + ((+new Date) - start) + 'ms')
+    if(++done == LIMIT) {
+      duration = (+new Date) - start
+      console.log('Deleting ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+    }
 
     if(async) {
-      (done == LIMIT) && testDeleteCallback && testDeleteCallback()
+      (done == LIMIT) && testDeleteCallback && testDeleteCallback(duration)
     } else {
       if(done < LIMIT)
         deleteEntry(done, deleteEntryCallback)
       else
-        testDeleteCallback && testDeleteCallback()
+        testDeleteCallback && testDeleteCallback(duration)
     }
-
   }
 
   if(async) {
@@ -140,19 +150,53 @@ var testDelete = function(async, testDeleteCallback) {
   }
 }
 
-testInserts(false, function() {
-  testInserts(true, function() {
-    testUpdates(false, function() {
-      testUpdates(true, function() {
-        testRead(function() {
-          testDelete(false, function() {
-            testDelete(true, function() {
-              console.log('Performance tests for mysql-connector done.')
-              process.exit()
+module.exports = function(times, runCallback) {
+  var durations = []
+    , done      = 0
+
+  var runTestsOnce = function(callback) {
+    console.log('\nRunning mysql tests #' + (done + 1))
+
+    var results = {}
+
+    testInserts(false, function(duration) {
+      results.insertSerially = duration
+
+      testInserts(true, function(duration) {
+        results.insertAsync = duration
+
+        testUpdates(false, function(duration) {
+          results.updateSerially = duration
+
+          testUpdates(true, function(duration) {
+            results.updateAsync = duration
+
+            testRead(function(duration) {
+              results.read = duration
+
+              testDelete(false, function(duration) {
+                results.deleteSerially = duration
+
+                testDelete(true, function(duration) {
+                  results.deleteAsync = duration
+
+                  durations.push(results)
+                  callback && callback()
+                })
+              })
             })
           })
         })
       })
     })
-  })
-})
+  }
+
+  var runTestsOnceCallback = function() {
+    if(++done == times)
+      runCallback && runCallback(durations)
+    else
+      runTestsOnce(runTestsOnceCallback)
+  }
+
+  runTestsOnce(runTestsOnceCallback)
+}

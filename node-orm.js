@@ -2,144 +2,189 @@ var server = "mysql://root@localhost/performance_analysis_sequelize"
   , orm    = require("orm")
   , LIMIT  = 10000
 
-orm.connect(server, function(success, db) {
-  var Entry = db.define('EntryORM', {
-    number: { type: 'integer' },
-    string: { type: 'string' }
-  })
+module.exports = function(times, runCallback) {
+  var durations = []
+    , done      = 0
 
-  var testInserts = function(async, testInsertsCallback, disableLogging) {
-    Entry.sync()
+  var runTestsOnce = function(callback) {
+    orm.connect(server, function(success, db) {
+      var Entry = db.define('EntryORM', {
+        number: { type: 'integer' },
+        string: { type: 'string' }
+      })
 
-    Entry.clear(function() {
-      var done  = 0
-        , start = +new Date
+      var testInserts = function(async, testInsertsCallback, disableLogging) {
+        Entry.sync()
 
-      var createEntry = function(callback) {
-        new Entry({
-          number: Math.floor(Math.random() * 99999),
-          string: 'asdasd'
-        }).save(callback)
-      }
+        Entry.clear(function() {
+          var done     = 0
+            , start    = +new Date()
+            , duration = null
 
-      var createEntryCallback = function() {
-        if((++done == LIMIT) && !disableLogging)
-          console.log('Adding ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + ((+new Date) - start) + 'ms')
+          var createEntry = function(callback) {
+            new Entry({
+              number: Math.floor(Math.random() * 99999),
+              string: 'asdasd'
+            }).save(callback)
+          }
 
-        if(async) {
-          (done == LIMIT) && testInsertsCallback && testInsertsCallback()
-        } else {
-          if(done < LIMIT)
-            createEntry(createEntryCallback)
-          else
-            testInsertsCallback && testInsertsCallback()
-        }
-      }
+          var createEntryCallback = function() {
+            if((++done == LIMIT) && !disableLogging) {
+              duration = (+new Date) - start
+              console.log('Adding ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+            }
 
-      if(async) {
-        for(var i = 0; i < LIMIT; i++)
-          createEntry(createEntryCallback)
-      } else {
-        createEntry(createEntryCallback)
-      }
-    })
-  }
-
-  var testUpdates = function(async, testUpdatesCallback) {
-    Entry.find(function(entries) {
-      var done  = 0
-        , start = +new Date
-
-      var updateEntry = function(index, callback) {
-        var entry = entries[index]
-
-        entry.number = Math.floor(Math.random() * 99999)
-        entry.save(callback)
-      }
-
-      var updateEntryCallback = function(err) {
-        if(err) throw new Error(err)
-
-        if(++done == LIMIT)
-          console.log('Updating ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + ((+new Date) - start) + 'ms')
-
-        if(async) {
-          (done == LIMIT) && testUpdatesCallback && testUpdatesCallback()
-        } else {
-          if(done < LIMIT)
-            updateEntry(done, updateEntryCallback)
-          else
-            testUpdatesCallback && testUpdatesCallback()
-        }
-      }
-
-      if(async) {
-        for(var i = 0; i < LIMIT; i++)
-          updateEntry(i, updateEntryCallback)
-      } else {
-        updateEntry(0, updateEntryCallback)
-      }
-    })
-  }
-
-  var testRead = function(testReadCallback) {
-    var start = +new Date
-
-    Entry.find(function(entries) {
-      console.log('Reading ' + entries.length + ' database entries took ' + ((+new Date) - start) + 'ms')
-      testReadCallback && testReadCallback()
-    })
-  }
-
-  var testDelete = function(async, testDeleteCallback) {
-    testInserts(true, function() {
-      Entry.find(function(entries) {
-        var done  = 0
-          , start = +new Date
-
-        var deleteEntry = function(index, callback) {
-          var entry = entries[index]
-          entry.remove(callback)
-        }
-
-        var deleteEntryCallback = function() {
-          if(++done == LIMIT)
-            console.log('Deleting ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + ((+new Date) - start) + 'ms')
+            if(async) {
+              (done == LIMIT) && testInsertsCallback && testInsertsCallback(duration)
+            } else {
+              if(done < LIMIT)
+                createEntry(createEntryCallback)
+              else
+                testInsertsCallback && testInsertsCallback(duration)
+            }
+          }
 
           if(async) {
-            (done == LIMIT) && testDeleteCallback && testDeleteCallback()
+            for(var i = 0; i < LIMIT; i++)
+              createEntry(createEntryCallback)
           } else {
-            if(done < LIMIT)
-              deleteEntry(done, deleteEntryCallback)
-            else
-              testDeleteCallback && testDeleteCallback()
+            createEntry(createEntryCallback)
           }
-        }
+        })
+      }
 
-        if(async) {
-          for(var i = 0; i < LIMIT; i++)
-            deleteEntry(i, deleteEntryCallback)
-        } else {
-          deleteEntry(0, deleteEntryCallback)
-        }
-      })
-    }, true)
-  }
+      var testUpdates = function(async, testUpdatesCallback) {
+        Entry.find(function(entries) {
+          var done     = 0
+            , start    = +new Date()
+            , duration = null
 
-  testInserts(false, function() {
-    testInserts(true, function() {
-      testUpdates(false, function() {
-        testUpdates(true, function() {
-          testRead(function() {
-            testDelete(false, function() {
-              testDelete(true, function() {
-                console.log('Performance tests for node-orm done.')
-                process.exit()
+          var updateEntry = function(index, callback) {
+            var entry = entries[index]
+
+            entry.number = Math.floor(Math.random() * 99999)
+            entry.save(callback)
+          }
+
+          var updateEntryCallback = function(err) {
+            if(err) throw new Error(err)
+
+            if(++done == LIMIT) {
+              duration = (+new Date) - start
+              console.log('Updating ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+            }
+
+            if(async) {
+              (done == LIMIT) && testUpdatesCallback && testUpdatesCallback(duration)
+            } else {
+              if(done < LIMIT)
+                updateEntry(done, updateEntryCallback)
+              else
+                testUpdatesCallback && testUpdatesCallback(duration)
+            }
+          }
+
+          if(async) {
+            for(var i = 0; i < LIMIT; i++)
+              updateEntry(i, updateEntryCallback)
+          } else {
+            updateEntry(0, updateEntryCallback)
+          }
+        })
+      }
+
+      var testRead = function(testReadCallback) {
+        var start    = +new Date
+          , duration = null
+
+        Entry.find(function(entries) {
+          duration = (+new Date) - start
+          console.log('Reading ' + entries.length + ' database entries took ' + duration + 'ms')
+          testReadCallback && testReadCallback(duration)
+        })
+      }
+
+      var testDelete = function(async, testDeleteCallback) {
+        testInserts(true, function() {
+          Entry.find(function(entries) {
+            var done     = 0
+              , start    = +new Date()
+              , duration = null
+
+            var deleteEntry = function(index, callback) {
+              var entry = entries[index]
+              entry.remove(callback)
+            }
+
+            var deleteEntryCallback = function() {
+              if(++done == LIMIT) {
+                duration = (+new Date) - start
+                console.log('Deleting ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+              }
+
+              if(async) {
+                (done == LIMIT) && testDeleteCallback && testDeleteCallback(duration)
+              } else {
+                if(done < LIMIT)
+                  deleteEntry(done, deleteEntryCallback)
+                else
+                  testDeleteCallback && testDeleteCallback(duration)
+              }
+            }
+
+            if(async) {
+              for(var i = 0; i < LIMIT; i++)
+                deleteEntry(i, deleteEntryCallback)
+            } else {
+              deleteEntry(0, deleteEntryCallback)
+            }
+          })
+        }, true)
+      }
+
+      console.log('\nRunning node-orm tests #' + (done + 1))
+
+      var results = {}
+
+      testInserts(false, function(duration) {
+        results.insertSerially = duration
+
+        testInserts(true, function(duration) {
+          results.insertAsync = duration
+
+          testUpdates(false, function(duration) {
+            results.updateSerially = duration
+
+            testUpdates(true, function(duration) {
+              results.updateAsync = duration
+
+              testRead(function(duration) {
+                results.read = duration
+
+                testDelete(false, function(duration) {
+                  results.deleteSerially = duration
+
+                  testDelete(true, function(duration) {
+                    results.deleteAsync = duration
+
+                    durations.push(results)
+                    callback && callback()
+                  })
+                })
               })
             })
           })
         })
       })
     })
-  })
-})
+  }
+
+  var runTestsOnceCallback = function() {
+    if(++done == times)
+      runCallback && runCallback(durations)
+    else
+      runTestsOnce(runTestsOnceCallback)
+  }
+
+  runTestsOnce(runTestsOnceCallback)
+}
