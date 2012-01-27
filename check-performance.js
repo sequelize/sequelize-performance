@@ -1,4 +1,4 @@
-const TIMES = 2
+const TIMES = 10
 
 var runMySqlTest     = require("./mysql")
   , runNodeOrmTest   = require("./node-orm")
