@@ -9,9 +9,7 @@ The tests are using the database `performance_analysis_sequelize` with the user 
 ## How is it working?
 
     npm install
-    node mysql.js
-    node node-orm.js
-    node sequelize.js
+    node check-performance.js
 
     cd rails
     bundle
