@@ -1,0 +1,3 @@
+build/
+.lock-wscript
+sqlite3_bindings.node
