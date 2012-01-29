@@ -1,4 +1,4 @@
-const TIMES = 25
+const TIMES = parseInt(process.env.TIMES || 2)
 
 var runMySqlTest     = require("./mysql")
   , runNodeOrmTest   = require("./node-orm")
