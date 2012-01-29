@@ -1,4 +1,5 @@
 const TIMES = parseInt(process.env.TIMES || 2)
+    , LIMIT = parseInt(process.env.LIMIT || 1000)
 
 var runMySqlTest       = require("./mysql")
   , runNodeOrmTest     = require("./node-orm")
@@ -24,10 +25,10 @@ var printDurations = function(lib, durations) {
   }
 }
 
-runMySqlTest(TIMES, function(mySqlDurations) {
-  runNodeOrmTest(TIMES, function(nodeOrmDurations) {
-    runSequelizeTest(TIMES, function(sequelizeDurations) {
-      runPersistenceTest(TIMES, function(persistenceDurations) {
+runMySqlTest(TIMES, LIMIT, function(mySqlDurations) {
+  runNodeOrmTest(TIMES, LIMIT, function(nodeOrmDurations) {
+    runSequelizeTest(TIMES, LIMIT, function(sequelizeDurations) {
+      runPersistenceTest(TIMES, LIMIT, function(persistenceDurations) {
         printDurations('node-mysql', mySqlDurations)
         printDurations('node-orm', nodeOrmDurations)
         printDurations('persistencejs', persistenceDurations)

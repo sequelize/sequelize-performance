@@ -1,7 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + "/../config/environment")
 require "parallel"
 
-LIMIT = 10000
+LIMIT = (ENV['LIMIT'] || 10000).to_i
 TIMES = (ENV['TIMES'] || 2).to_i
 
 

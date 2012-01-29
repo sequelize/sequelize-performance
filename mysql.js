@@ -1,5 +1,6 @@
 const MySQL  = require("mysql")
-    , LIMIT  = 10000
+
+var LIMIT = 10000
 
 var client = MySQL.createClient({
   user: 'root',
@@ -152,9 +153,11 @@ var testDelete = function(async, testDeleteCallback) {
   }, true)
 }
 
-module.exports = function(times, runCallback) {
+module.exports = function(times, limit, runCallback) {
   var durations = []
     , done      = 0
+
+  LIMIT = limit
 
   var runTestsOnce = function(callback) {
     console.log('\nRunning mysql tests #' + (done + 1))

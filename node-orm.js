@@ -2,9 +2,11 @@ var server = "mysql://root@localhost/performance_analysis_sequelize"
   , orm    = require("orm")
   , LIMIT  = 10000
 
-module.exports = function(times, runCallback) {
+module.exports = function(times, limit, runCallback) {
   var durations = []
     , done      = 0
+
+  LIMIT = limit
 
   var runTestsOnce = function(callback) {
     orm.connect(server, function(success, db) {

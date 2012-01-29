@@ -1,5 +1,6 @@
 const Sequelize = require("sequelize")
-    , LIMIT     = 10000
+
+var LIMIT = 10000
 
 var sequelize = new Sequelize('performance_analysis_sequelize', 'root', null, { logging: false })
   , Entry     = sequelize.define('Entry', {
@@ -107,9 +108,11 @@ var testDelete = function(async, testDeleteCallback) {
   }, true)
 }
 
-module.exports = function(times, runCallback) {
+module.exports = function(times, limit, runCallback) {
   var durations = []
     , done      = 0
+
+  LIMIT = limit
 
   var runTestsOnce = function(callback) {
     console.log('\nRunning sequelize tests #' + (done + 1))
