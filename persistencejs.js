@@ -40,7 +40,7 @@ var testInserts = function(async, testInsertsCallback, disableLogging) {
             if (done == LIMIT) {
               persistence.flush(tx, function() {
                 duration = (+new Date) - start
-                console.log('Adding ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+                !disableLogging && console.log('Adding ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
                 testInsertsCallback && testInsertsCallback(duration)
               })
             }
