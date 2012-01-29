@@ -1,6 +1,6 @@
 const persistence      = require('persistencejs/lib/persistence').persistence
     , persistenceStore = require("persistencejs/lib/persistence.store.mysql")
-    , LIMIT            = 1000
+    , LIMIT            = 10000
 
 persistence.debug = false
 persistenceStore.config(persistence, 'localhost', 3306, 'performance_analysis_sequelize', 'root', null)
@@ -129,7 +129,7 @@ var testRead = function(testReadCallback) {
 }
 
 var testDelete = function(async, testDeleteCallback) {
-  testInserts(false, function() {
+  testInserts(true, function() {
     session.transaction(function(tx) {
       Entry.all(session).list(function(entries) {
         var done     = 0
@@ -183,7 +183,7 @@ module.exports = function(times, runCallback) {
     , done      = 0
 
   var runTestsOnce = function(callback) {
-    console.log('\nRunning mysql tests #' + (done + 1))
+    console.log('\nRunning persistencejs tests #' + (done + 1))
 
     var results = {}
 
@@ -228,5 +228,3 @@ module.exports = function(times, runCallback) {
 
   runTestsOnce(runTestsOnceCallback)
 }
-
-module.exports(1)
