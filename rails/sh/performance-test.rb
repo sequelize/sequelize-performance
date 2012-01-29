@@ -2,6 +2,8 @@ require File.expand_path(File.dirname(__FILE__) + "/../config/environment")
 require "parallel"
 
 LIMIT = 10000
+TIMES = (ENV['TIMES'] || 2).to_i
+
 
 def clear_table
   EntryRails.delete_all
@@ -10,6 +12,7 @@ end
 def log(method, duration, async=false)
   type = async ? 'async' : 'serially'
   puts "#{method} #{LIMIT} database entries #{type} took #{duration}ms."
+  duration
 end
 
 def test_insert(async=false, disable_logging=false)
@@ -72,12 +75,22 @@ def test_delete(async=false)
   log('Deleting', ((Time.now.to_f - start) * 1000).ceil, async)
 end
 
+durations = []
 
-test_insert
-test_insert(true)
-test_update
-test_update(true)
-test_read
-test_delete
-test_delete(true)
+TIMES.times do |i|
+  puts "Running rails performance tests ##{i}"
+  durations << {
+    :insertSerially => test_insert,
+    :insertAsync    => test_insert(true),
+    :updateSerially => test_update,
+    :updateAsync    => test_update(true),
+    :read           => test_read,
+    :deleteSerially => test_delete,
+    :deleteAsync    => test_delete(true)
+  }
+end
 
+durations.first.keys.each do |key|
+  duration = durations.map{|d| d[key]}.sum/durations.size
+  puts "Rails##{key} (#{TIMES} runs): #{duration}ms"
+end
