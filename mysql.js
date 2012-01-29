@@ -113,41 +113,43 @@ var testRead = function(testReadCallback) {
 }
 
 var testDelete = function(async, testDeleteCallback) {
-  var done     = 0
-    , start    = +new Date()
-    , duration = null
+  testInserts(false, function() {
+    var done     = 0
+      , start    = +new Date()
+      , duration = null
 
-  var deleteEntry = function(id, callback) {
-    var sql = 'DELETE FROM `Entries` WHERE id=' + id + ' LIMIT 1;'
+    var deleteEntry = function(id, callback) {
+      var sql = 'DELETE FROM `Entries` WHERE id=' + id + ' LIMIT 1;'
 
-    client.query(sql, function(err, results, fields) {
-      if(err) throw new Error(err)
-      callback && callback()
-    })
-  }
+      client.query(sql, function(err, results, fields) {
+        if(err) throw new Error(err)
+        callback && callback()
+      })
+    }
 
-  var deleteEntryCallback = function() {
-    if(++done == LIMIT) {
-      duration = (+new Date) - start
-      console.log('Deleting ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+    var deleteEntryCallback = function() {
+      if(++done == LIMIT) {
+        duration = (+new Date) - start
+        console.log('Deleting ' + LIMIT + ' database entries ' + (async ? 'async' : 'serially') + ' took ' + duration + 'ms')
+      }
+
+      if(async) {
+        (done == LIMIT) && testDeleteCallback && testDeleteCallback(duration)
+      } else {
+        if(done < LIMIT)
+          deleteEntry(done, deleteEntryCallback)
+        else
+          testDeleteCallback && testDeleteCallback(duration)
+      }
     }
 
     if(async) {
-      (done == LIMIT) && testDeleteCallback && testDeleteCallback(duration)
-    } else {
-      if(done < LIMIT)
+      for(var i = 0; i < LIMIT; i++)
         deleteEntry(done, deleteEntryCallback)
-      else
-        testDeleteCallback && testDeleteCallback(duration)
-    }
-  }
-
-  if(async) {
-    for(var i = 0; i < LIMIT; i++)
+    } else {
       deleteEntry(done, deleteEntryCallback)
-  } else {
-    deleteEntry(done, deleteEntryCallback)
-  }
+    }
+  }, true)
 }
 
 module.exports = function(times, runCallback) {
