@@ -2,10 +2,14 @@ const MySQL  = require("mysql")
 
 var LIMIT = 10000
 
-var client = MySQL.createClient({
+var client = MySQL.createConnection({
+  multipleStatements: true,
+  host: 'localhost',
   user: 'root',
   database: 'performance_analysis_sequelize'
 })
+
+client.connect()
 
 var createTable = function(callback) {
   var sql = "DROP TABLE IF EXISTS `Entries`;CREATE TABLE IF NOT EXISTS `Entries` (`number` INTEGER, `string` VARCHAR(255), `id` INTEGER NOT NULL auto_increment , `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB;"
@@ -98,11 +102,6 @@ var testRead = function(testReadCallback) {
     , start    = +new Date
     , sql      = 'SELECT * FROM Entries'
     , duration = null
-
-  client = MySQL.createClient({
-    user: 'root',
-    database: 'performance_analysis_sequelize'
-  })
 
   client.query(sql, function(err, results, fields) {
     if(err) throw new Error(err)

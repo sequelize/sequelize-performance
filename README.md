@@ -15,6 +15,42 @@ The tests are using the database `performance_analysis_sequelize` with the user 
     bundle
     ruby sh/performance-test.rb
 
+## Test-results on small vm (1GB Ram, 2 Cores) Centos 5.3 (test ran on 4/5/2013)
+    
+    node-mysql#insertSerially (25 runs): 1061.36ms
+    node-mysql#insertAsync (25 runs): 912.08ms
+    node-mysql#updateSerially (25 runs): 1093.96ms
+    node-mysql#updateAsync (25 runs): 819.32ms
+    node-mysql#read (25 runs): 9.24ms
+    node-mysql#deleteSerially (25 runs): 1069.08ms
+    node-mysql#deleteAsync (25 runs): 490.56ms
+
+    node-orm#insertSerially (25 runs): 678ms
+    node-orm#insertAsync (25 runs): 584.28ms
+    node-orm#updateSerially (25 runs): 628.88ms
+    node-orm#updateAsync (25 runs): 528.64ms
+    node-orm#read (25 runs): 16.64ms
+    node-orm#deleteSerially (25 runs): 663ms
+    node-orm#deleteAsync (25 runs): 556.6ms
+
+    persistencejs#insertSerially (25 runs): 2677ms
+    persistencejs#insertAsync (25 runs): 2177.84ms
+    persistencejs#updateSerially (25 runs): 2656.16ms
+    persistencejs#updateAsync (25 runs): 15.8ms
+    persistencejs#read (25 runs): 709.48ms
+    persistencejs#deleteSerially (25 runs): 4573.24ms
+    persistencejs#deleteAsync (25 runs): 799.6ms
+
+    sequelize#insertSerially (25 runs): 2473.76ms
+    sequelize#insertAsync (25 runs): 943.88ms
+    sequelize#updateSerially (25 runs): 2359.12ms
+    sequelize#updateAsync (25 runs): 860.24ms
+    sequelize#read (25 runs): 27.32ms
+    sequelize#deleteSerially (25 runs): 2090.2ms
+    sequelize#deleteAsync (25 runs): 810.32ms
+
+    no ruby tests...
+
 ## Test-results on ec2 micro instance (ami-cb340abf)
 
     node-mysql#insertSerially (25 runs): 9898.8ms
