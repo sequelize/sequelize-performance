@@ -17,37 +17,37 @@ The tests are using the database `performance_analysis_sequelize` with the user 
 
 ## Test-results on small vm (1GB Ram, 2 Cores) Centos 5.3 (test ran on 4/5/2013)
     
-    node-mysql#insertSerially (2 runs): 1104.5ms
-    node-mysql#insertAsync (2 runs): 953ms
-    node-mysql#updateSerially (2 runs): 1208ms
-    node-mysql#updateAsync (2 runs): 830ms
-    node-mysql#read (2 runs): 10ms
-    node-mysql#deleteSerially (2 runs): 1000ms
-    node-mysql#deleteAsync (2 runs): 492ms
+    node-mysql#insertSerially (25 runs): 1061.36ms
+    node-mysql#insertAsync (25 runs): 912.08ms
+    node-mysql#updateSerially (25 runs): 1093.96ms
+    node-mysql#updateAsync (25 runs): 819.32ms
+    node-mysql#read (25 runs): 9.24ms
+    node-mysql#deleteSerially (25 runs): 1069.08ms
+    node-mysql#deleteAsync (25 runs): 490.56ms
 
-    node-orm#insertSerially (2 runs): 583ms
-    node-orm#insertAsync (2 runs): 507ms
-    node-orm#updateSerially (2 runs): 585ms
-    node-orm#updateAsync (2 runs): 460.5ms
-    node-orm#read (2 runs): 16ms
-    node-orm#deleteSerially (2 runs): 596ms
-    node-orm#deleteAsync (2 runs): 431ms
+    node-orm#insertSerially (25 runs): 678ms
+    node-orm#insertAsync (25 runs): 584.28ms
+    node-orm#updateSerially (25 runs): 628.88ms
+    node-orm#updateAsync (25 runs): 528.64ms
+    node-orm#read (25 runs): 16.64ms
+    node-orm#deleteSerially (25 runs): 663ms
+    node-orm#deleteAsync (25 runs): 556.6ms
 
-    persistencejs#insertSerially (2 runs): 1906.5ms
-    persistencejs#insertAsync (2 runs): 614.5ms
-    persistencejs#updateSerially (2 runs): 1543ms
-    persistencejs#updateAsync (2 runs): 13.5ms
-    persistencejs#read (2 runs): 614.5ms
-    persistencejs#deleteSerially (2 runs): 2051ms
-    persistencejs#deleteAsync (2 runs): 597.5ms
+    persistencejs#insertSerially (25 runs): 2677ms
+    persistencejs#insertAsync (25 runs): 2177.84ms
+    persistencejs#updateSerially (25 runs): 2656.16ms
+    persistencejs#updateAsync (25 runs): 15.8ms
+    persistencejs#read (25 runs): 709.48ms
+    persistencejs#deleteSerially (25 runs): 4573.24ms
+    persistencejs#deleteAsync (25 runs): 799.6ms
 
-    sequelize#insertSerially (2 runs): 2137ms
-    sequelize#insertAsync (2 runs): 715ms
-    sequelize#updateSerially (2 runs): 2220.5ms
-    sequelize#updateAsync (2 runs): 704.5ms
-    sequelize#read (2 runs): 22ms
-    sequelize#deleteSerially (2 runs): 2353ms
-    sequelize#deleteAsync (2 runs): 587.5ms
+    sequelize#insertSerially (25 runs): 2473.76ms
+    sequelize#insertAsync (25 runs): 943.88ms
+    sequelize#updateSerially (25 runs): 2359.12ms
+    sequelize#updateAsync (25 runs): 860.24ms
+    sequelize#read (25 runs): 27.32ms
+    sequelize#deleteSerially (25 runs): 2090.2ms
+    sequelize#deleteAsync (25 runs): 810.32ms
 
     no ruby tests...
 
