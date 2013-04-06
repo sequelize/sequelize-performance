@@ -9,10 +9,12 @@ module.exports = function(times, limit, runCallback) {
   LIMIT = limit
 
   var runTestsOnce = function(callback) {
-    orm.connect(server, function(success, db) {
+    orm.connect(server, function(err, db) {
+      if (err) throw err;
+
       var Entry = db.define('EntryORM', {
-        number: { type: 'integer' },
-        string: { type: 'string' }
+        number: { type: 'number' },
+        string: { type: 'text' }
       })
 
       var testInserts = function(async, testInsertsCallback, disableLogging) {
@@ -56,7 +58,7 @@ module.exports = function(times, limit, runCallback) {
       }
 
       var testUpdates = function(async, testUpdatesCallback) {
-        Entry.find(function(entries) {
+        Entry.find(function(err, entries) {
           var done     = 0
             , start    = +new Date()
             , duration = null
@@ -99,7 +101,7 @@ module.exports = function(times, limit, runCallback) {
         var start    = +new Date
           , duration = null
 
-        Entry.find(function(entries) {
+        Entry.find(function(err, entries) {
           duration = (+new Date) - start
           console.log('Reading ' + entries.length + ' database entries took ' + duration + 'ms')
           testReadCallback && testReadCallback(duration)
@@ -108,7 +110,7 @@ module.exports = function(times, limit, runCallback) {
 
       var testDelete = function(async, testDeleteCallback) {
         testInserts(true, function() {
-          Entry.find(function(entries) {
+          Entry.find(function(err, entries) {
             var done     = 0
               , start    = +new Date()
               , duration = null
