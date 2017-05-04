@@ -1,5 +1,7 @@
 ## What is this repository about?
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/sequelize/sequelize-performance.svg)](https://greenkeeper.io/)
+
 mumble mumble
 
 ## Setup database first
